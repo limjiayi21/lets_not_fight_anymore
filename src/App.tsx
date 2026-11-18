@@ -7,6 +7,7 @@ import { PeaceLog } from './components/PeaceLog'
 import { ScanModal } from './components/ScanModal'
 import { HowItWorks } from './components/HowItWorks'
 import { Confetti } from './components/Confetti'
+import { TwoDooDSync } from './twodood'
 import { DEMO_STEPS, type Tab } from './demo'
 import { useStore } from './store'
 import type { ItemType } from './types'
@@ -90,7 +91,7 @@ export default function App() {
               className={`hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-extrabold transition md:flex ${
                 state.sync2dood ? 'bg-lilac text-white shadow' : 'bg-ink/5 text-muted hover:bg-ink/10'
               }`}
-              title="Also add a to-do to the student's 2DooD list (MeloMed 2DooD MCP)"
+              title="Also add a to-do to the student's 2DooD list through the MeloMed 2DooD MCP server"
             >
               <ListChecks size={14} /> 2DooD sync {state.sync2dood ? 'on' : 'off'}
             </button>
@@ -117,6 +118,7 @@ export default function App() {
       <ScanModal />
       {about && <HowItWorks onClose={() => setAbout(false)} />}
       <Confetti />
+      <TwoDooDSync />
 
       {demo.running && (
         <div className="fixed inset-x-0 bottom-4 z-[60] flex justify-center px-4">

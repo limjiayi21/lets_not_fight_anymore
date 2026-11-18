@@ -2,7 +2,7 @@ import { useEffect, useMemo, useReducer, type ReactNode } from 'react'
 import { StoreCtx } from './storeContext'
 import { DEFAULT_ZONES, DOOR, ITEMS, SPOTS, studentById, zonePhrase } from './data'
 import { dist, zoneAt } from './geometry'
-import type { AppState, Issue, Item, ItemType, LogEntry, LogKind, Pt, ScanResult, Zone } from './types'
+import type { AppState, Issue, IssueSync, Item, ItemType, LogEntry, LogKind, Pt, ScanResult, Zone } from './types'
 
 const KEY = 'lets-not-fight-v1'
 const uid = () => Math.random().toString(36).slice(2, 10)
@@ -37,7 +37,12 @@ export function initialState(): AppState {
 function load(): AppState {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) return { ...initialState(), ...JSON.parse(raw), scan: null }
+    if (raw) {
+      const saved = JSON.parse(raw) as AppState
+      // a 2DooD call that was in flight when the page closed gets retried
+      const issues = (saved.issues ?? []).map((i) => (i.sync?.status === 'pending' ? { ...i, sync: undefined } : i))
+      return { ...initialState(), ...saved, issues, scan: null }
+    }
   } catch {
     /* ignore */
   }
@@ -52,12 +57,14 @@ type Action =
   | { type: 'tapOut'; studentId: string }
   | { type: 'resolve'; issueId: string }
   | { type: 'dismissScan' }
+  | { type: 'syncUpdate'; issueId: string; sync: Partial<IssueSync>; log?: string }
   | { type: 'setPhone'; studentId: string }
   | { type: 'addZone'; zone: Zone }
   | { type: 'updateZone'; zone: Zone }
   | { type: 'deleteZone'; id: string }
   | { type: 'resetZones' }
   | { type: 'toggle2dood' }
+  | { type: 'set2dood'; on: boolean }
   | { type: 'resetLive' }
   | { type: 'resetAll' }
 
@@ -134,17 +141,15 @@ export function reducer(s: AppState, a: Action): AppState {
           summary: joinNice(parts),
           createdAt: Date.now(),
           synced: s.sync2dood,
+          todoTitles: mine.map((i) => {
+            const z = s.zones.find((zz) => zz.id === i.zoneId)
+            return `Clean: ${ITEMS[i.type].label.toLowerCase()} ${z ? zonePhrase(z.name) : 'in the kitchen'}`
+          }),
         }
         issues = [...issues, issue]
         items = items.map((i) => (issue!.itemIds.includes(i.id) ? { ...i, issueId: issue!.id } : i))
         log.push(entry('issue', `Scan found ${mine.length} thing${mine.length > 1 ? 's' : ''} out of place: ${issue.summary}`, { studentId: st.id, trackId: person.trackId }))
         log.push(entry('nudge', `Friendly nudge sent privately to ${st.name}`, { studentId: st.id, trackId: person.trackId }))
-        if (s.sync2dood) {
-          for (const i of mine) {
-            const z = s.zones.find((zz) => zz.id === i.zoneId)
-            log.push(entry('sync', `Added “Clean: ${ITEMS[i.type].label.toLowerCase()} ${z ? zonePhrase(z.name) : ''}” to ${st.name}'s 2DooD list`, { studentId: st.id }))
-          }
-        }
       } else {
         log.push(entry('clear', 'Scan complete: all clear ✨', { studentId: st.id, trackId: person.trackId }))
       }
@@ -180,6 +185,16 @@ export function reducer(s: AppState, a: Action): AppState {
         log: [...s.log, entry('resolved', `${st.name} cleaned it up. Peace kept 🕊️`, { studentId: st.id, trackId: issue.trackId })],
       }
     }
+    case 'syncUpdate': {
+      const issue = s.issues.find((i) => i.id === a.issueId)
+      if (!issue) return s
+      const sync = { status: 'pending', ...issue.sync, ...a.sync } as IssueSync
+      return {
+        ...s,
+        issues: s.issues.map((i) => (i.id === issue.id ? { ...i, sync } : i)),
+        log: a.log ? [...s.log, entry('sync', a.log, { studentId: issue.studentId })] : s.log,
+      }
+    }
     case 'dismissScan':
       return { ...s, scan: null }
     case 'setPhone':
@@ -194,6 +209,8 @@ export function reducer(s: AppState, a: Action): AppState {
       return { ...s, zones: DEFAULT_ZONES }
     case 'toggle2dood':
       return { ...s, sync2dood: !s.sync2dood }
+    case 'set2dood':
+      return { ...s, sync2dood: a.on }
     case 'resetLive':
       return { ...s, people: [], items: [], scan: null, nextTrackId: 1, lastDoor: null }
     case 'resetAll':

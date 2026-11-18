@@ -4,6 +4,7 @@ import { KitchenCanvas } from './KitchenCanvas'
 import { ItemSticker } from './Markers'
 import { ITEMS, studentById, trackColor, zonePhrase } from '../data'
 import { useStore } from '../store'
+import { SyncBadge } from '../twodood'
 
 export function ScanModal() {
   const { state } = useStore()
@@ -101,7 +102,11 @@ function ScanView() {
                   <span className="flex items-center gap-2">
                     <Lock size={16} className="text-lilac" /> Private. Never posted to the group
                   </span>
-                  {issue?.synced && <span className="text-lilac">✓ Synced to 2DooD</span>}
+                  {issue?.synced && (
+                    <span>
+                      <SyncBadge issue={issue} />
+                    </span>
+                  )}
                 </div>
               </div>
             )}

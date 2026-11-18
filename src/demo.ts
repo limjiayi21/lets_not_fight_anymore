@@ -15,6 +15,7 @@ export const DEMO_STEPS: DemoStep[] = [
     caption: 'A quiet evening in the shared kitchen. The door is locked.',
     run: ({ actions, setTab }) => {
       actions.dispatch({ type: 'resetAll' })
+      actions.dispatch({ type: 'set2dood', on: true })
       setTab('live')
     },
   },
@@ -60,9 +61,17 @@ export const DEMO_STEPS: DemoStep[] = [
     },
   },
   {
-    wait: 3600,
-    caption: 'Alex taps out. All clear, nothing to do ✓',
-    run: ({ actions }) => actions.tapOut('alex'),
+    wait: 3200,
+    caption: "Two to-dos also land in Maya's 2DooD list, live through the MeloMed 2DooD MCP server.",
+    run: ({ setTab }) => setTab('phone'),
+  },
+  {
+    wait: 4200,
+    caption: 'Back in the kitchen, Alex taps out. All clear, nothing to do ✓',
+    run: ({ actions, setTab }) => {
+      setTab('live')
+      actions.tapOut('alex')
+    },
   },
   {
     wait: 5000,
@@ -71,7 +80,7 @@ export const DEMO_STEPS: DemoStep[] = [
   },
   {
     wait: 1800,
-    caption: "Peace restored. The fight-free streak ticks up. Let's not fight. Anymore. 🕊️",
+    caption: "Peace restored: items gone, 2DooD to-dos ticked off, fight-free streak up. Let's not fight. Anymore. 🕊️",
     run: ({ actions }) => actions.resolveOpenFor('maya'),
   },
 ]

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle2, ListChecks } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
+import { SyncBadge } from '../twodood'
 import { fmtTime, studentById } from '../data'
 import { useStore } from '../store'
 import type { Issue } from '../types'
@@ -55,8 +56,8 @@ export function Phone({ studentId, big }: { studentId: string; big?: boolean }) 
               </div>
               <p className="text-[13px] font-semibold leading-snug text-ink">{nudgeText(i)}</p>
               {i.synced && (
-                <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-lilac-soft px-2 py-0.5 text-[10px] font-black text-lilac">
-                  <ListChecks size={11} /> Synced to 2DooD
+                <div className="mt-2">
+                  <SyncBadge issue={i} />
                 </div>
               )}
               <div className="mt-2.5 grid grid-cols-2 gap-2">
@@ -78,6 +79,11 @@ export function Phone({ studentId, big }: { studentId: string; big?: boolean }) 
               <div>
                 <p className="text-[12px] font-bold text-ink">Thanks {st.name}! Kitchen's back to peaceful ✨</p>
                 <p className="text-[10px] text-ink/50">Resolved at {fmtTime(i.resolvedAt!)}</p>
+                {i.synced && (
+                  <div className="mt-1">
+                    <SyncBadge issue={i} />
+                  </div>
+                )}
               </div>
             </div>
           ))}

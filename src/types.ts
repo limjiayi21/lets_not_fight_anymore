@@ -47,7 +47,16 @@ export interface Issue {
   summary: string // e.g. "a bowl on the island and a spill on the counter"
   createdAt: number
   resolvedAt?: number
-  synced: boolean
+  synced: boolean // 2DooD sync was on when this issue was created
+  todoTitles?: string[] // e.g. "Clean: bowl on the island"
+  sync?: IssueSync
+}
+
+export interface IssueSync {
+  status: 'pending' | 'synced' | 'error'
+  taskIds?: string[]
+  completed?: boolean
+  error?: string
 }
 
 export type LogKind = 'enter' | 'exit' | 'issue' | 'nudge' | 'resolved' | 'clear' | 'sync'
